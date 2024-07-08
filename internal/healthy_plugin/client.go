@@ -1,10 +1,11 @@
-package command
+package healthy_plugin
 
 import (
+	"strings"
+
 	"code.cloudfoundry.org/cli/plugin"
 	"github.com/cloudfoundry/go-cfclient/v3/client"
 	"github.com/cloudfoundry/go-cfclient/v3/config"
-	"strings"
 )
 
 func createCFClient(cliConnection plugin.CliConnection) (*client.Client, error) {
@@ -18,7 +19,7 @@ func createCFClient(cliConnection plugin.CliConnection) (*client.Client, error) 
 		return nil, err
 	}
 	t = strings.TrimPrefix(t, "bearer ")
-	
+
 	skipSSLValidation, err := cliConnection.IsSSLDisabled()
 	if err != nil {
 		return nil, err

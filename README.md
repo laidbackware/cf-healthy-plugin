@@ -1,1 +1,1 @@
-# cf-singleton-finder
+# cf-healthy-plugin

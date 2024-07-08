@@ -24,3 +24,5 @@ go.work.sum
 .envrc
 .vscode/
 __debug*
+bin/
+*.xlsx

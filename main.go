@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/laidbackware/cf-singleton-finder/command"
+	"github.com/laidbackware/cf-healthy-plugin/command"
 
 	"code.cloudfoundry.org/cli/plugin"
 )
@@ -19,7 +19,7 @@ func main() {
 	// Note: The plugin's main() method is invoked at install time to collect
 	// metadata. The plugin will exit 0 and the Run([]string) method will not be
 	// invoked.
-	plugin.Start(new(command.SingletonFinderPlugin))
+	plugin.Start(new(command.HealthyPlugin))
 	// Plugin code should be written in the Run([]string) method,
 	// ensuring the plugin environment is bootstrapped.
 }
