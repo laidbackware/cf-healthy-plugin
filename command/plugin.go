@@ -1,8 +1,10 @@
 package command
 
 import (
+	"fmt"
+	"os"
 	"code.cloudfoundry.org/cli/plugin"
-	"github.com/laidbackware/cf-healthy-plugin/internal/healthy_plugin"
+	
 )
 
 // HealthyPlugin is the struct implementing the interface defined by the core CLI. It can
@@ -22,7 +24,15 @@ type HealthyPlugin struct{}
 // user facing errors). The CLI will exit 0 if the plugin exits 0 and will exit
 // 1 should the plugin exits nonzero.
 func (c *HealthyPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-	healthy_plugin.RunPlugin(cliConnection)
+	switch args[0] {
+	case "health-report":
+		healthReport(cliConnection, args)
+	case "CLI-MESSAGE-UNINSTALL":
+		os.Exit(0)
+	default:
+		fmt.Fprintf(os.Stderr, "unsupported command %s\n", args[0])
+		os.Exit(1)
+	}
 }
 
 // GetMetadata must be implemented as part of the plugin interface
@@ -38,6 +48,11 @@ func (c *HealthyPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 // second field, HelpText, is used by the core CLI to display help information
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
+	options := map[string]string{
+		"--output, -o": "The output file, with or without path.",
+		"--format, -f": "The format of the output file. (json, xlsx).",
+	}
+	
 	return plugin.PluginMetadata{
 		Name: "HealthyPlugin",
 		Version: plugin.VersionType{
@@ -58,7 +73,8 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "cf singleton",
+					Usage: "cf health-report",
+					Options: options,
 				},
 			},
 		},

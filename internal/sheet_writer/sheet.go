@@ -9,16 +9,13 @@ import (
 
 )
 
-func WriteSheet(singletonApps map[string]map[string]map[string][]*resource.Process, fileName string) (outputFile string, err error) {
+func WriteSheet(singletonApps map[string]map[string]map[string][]*resource.Process, outputFile string) (err error) {
 	tableArray := buildTableArray(singletonApps)
-	outputFile, err = renderSheet(tableArray, fileName)
+	err = renderSheet(tableArray, outputFile)
 	return
 }
 
-func renderSheet(tableArray [][]string, fileName string) (outputFile string, err error) {
-	if fileName == "" {
-		fileName = "singletons.xlsx"
-	}
+func renderSheet(tableArray [][]string, outputFile string) (err error) {
 
 	headers := []string{
 		"Org Name",
@@ -54,11 +51,8 @@ func renderSheet(tableArray [][]string, fileName string) (outputFile string, err
 	}
 	
 	_ = f.DeleteSheet("Sheet1")
-	
-	if err = f.SaveAs(fileName); err != nil {
-		return
-	}
-	outputFile = fileName
+
+	err = f.SaveAs(outputFile)
 	return
 }
 

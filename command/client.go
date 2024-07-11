@@ -1,4 +1,4 @@
-package healthy_plugin
+package command
 
 import (
 	"strings"
