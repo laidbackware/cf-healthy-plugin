@@ -8,7 +8,7 @@ import (
 	"code.cloudfoundry.org/cli/plugin"
 	"code.cloudfoundry.org/cli/cf/flags"
 	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
-	"github.com/laidbackware/cf-healthy-plugin/internal/sheet_writer"
+	"github.com/laidbackware/cf-healthy-plugin/internal/render_output"
 )
 
 func healthReport(cliConnection plugin.CliConnection, args []string) {
@@ -31,7 +31,7 @@ func healthReport(cliConnection plugin.CliConnection, args []string) {
 	singletonApps, err := collect_data.FindSingletonApps(cf)
 	handleError(err)
 
-	handleError(sheet_writer.WriteSheet(singletonApps, outputFile))
+	handleError(render_output.WriteSheet(singletonApps, outputFile))
 	fmt.Printf("Written file: %s\n", outputFile)
 }
 
