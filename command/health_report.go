@@ -31,14 +31,22 @@ func healthReport(cliConnection plugin.CliConnection, args []string) {
 	singletonApps, err := collect_data.FindSingletonApps(cf)
 	handleError(err)
 
-	handleError(render_output.WriteSheet(singletonApps, outputFile))
+	switch fileFormat {
+	case "xlsx":
+		handleError(render_output.WriteSheet(singletonApps, outputFile))
+	case "json":
+		handleError(render_output.WriteJSON(singletonApps, outputFile))
+	default:
+		fmt.Fprintf(os.Stderr, "File format %s is not support. Please use [json, xlsx]\n", fileFormat)
+		os.Exit(1)
+	}
 	fmt.Printf("Written file: %s\n", outputFile)
 }
 
 func parseArguements(args []string) (flags.FlagContext, error) {
 	fc := flags.New()
 	fc.NewStringFlag("output", "o", "The output file, with or without path.")
-	fc.NewStringFlag("format", "f", "The format of the output file. (json, xlsx).")
+	fc.NewStringFlagWithDefault("format", "f", "The format of the output file. (json, xlsx).", "xlsx")
 	err := fc.Parse(args...)
 	return fc, err
 }
