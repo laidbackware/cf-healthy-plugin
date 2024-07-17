@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/cloudfoundry/go-cfclient/v3/resource"
-
+	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
 )
 
-func WriteJSON(singletonApps map[string]map[string]map[string][]*resource.Process, outputFile string) (err error) {
+func WriteJSON(healthState collect_data.HealthState, outputFile string) (err error) {
 	
-	outputJson, err := json.MarshalIndent(singletonApps, "", "    ")
+	outputJson, err := json.MarshalIndent(healthState, "", "    ")
 	if err != nil {
 		return
 	}

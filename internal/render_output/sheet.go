@@ -2,33 +2,44 @@ package render_output
 
 import (
 	"sort"
+	"strconv"
 
 	"golang.org/x/exp/maps"
 	"github.com/xuri/excelize/v2"
-	"github.com/cloudfoundry/go-cfclient/v3/resource"
+	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
 
 )
 
-func WriteSheet(singletonApps map[string]map[string]map[string][]*resource.Process, outputFile string) (err error) {
-	tableArray := buildTableArray(singletonApps)
-	err = renderSheet(tableArray, outputFile)
+type sheetContent struct {
+	sheetName			string
+	sheetHeaders		[]string
+	columnWidths	[]float64
+	tableData			[][]string
+}
+
+func WriteSheet(healthState collect_data.HealthState, outputFile string) (err error) {
+	allSheetsContents := []sheetContent{
+		{
+			sheetName: "singleton_apps",
+			sheetHeaders: []string{
+				"Org Name",
+				"Space Name",
+				"App Name",
+				"App ID",
+				"Process Type",
+			},
+			columnWidths: []float64{20, 20, 20, 32, 15},
+			tableData: buildTableArray(healthState.SingletonApps),
+		},
+	}
+	
+	// tableArray := buildTableArray(healthState.SingletonApps)
+	err = renderSheet(allSheetsContents, outputFile)
 	return
 }
 
-func renderSheet(tableArray [][]string, outputFile string) (err error) {
-
-	headers := []string{
-		"Org Name",
-		"Space Name",
-		"App Name",
-		"App ID",
-		"Process Type",
-	}
-
-	columnWidths := []float64{
-		20, 20, 20, 32, 15,
-	}
-	
+func renderSheet(allSheetsContents []sheetContent, outputFile string) (err error) {
+	// Initialize file
 	f := excelize.NewFile()
 	defer func() {
 		if err = f.Close(); err != nil {
@@ -36,45 +47,60 @@ func renderSheet(tableArray [][]string, outputFile string) (err error) {
 		}
 	}()
 
-	_, err = f.NewSheet("singleton-apps")
-	if err != nil {
-		return
+	// Walk sheets and render
+	for _, sheetContents := range allSheetsContents {
+		_, err = f.NewSheet("singleton-apps")
+		if err != nil {
+			return
+		}
+		setColumnWidths(f, "singleton-apps", sheetContents.columnWidths)
+		
+		// Write headers
+		writeLine(f, "singleton-apps", sheetContents.sheetHeaders, 0)
+		
+		// Write lines from array
+		for row, line := range sheetContents.tableData{
+			writeLine(f, "singleton-apps", line, row + 1)
+		}
+		
+		
 	}
-	setColumnWidths(f, "singleton-apps", columnWidths)
-	
-	// Write headers
-	writeLine(f, "singleton-apps", headers, 0)
-	
-	// Write lines from array
-	for row, line := range tableArray{
-		writeLine(f, "singleton-apps", line, row + 1)
-	}
-	
 	_ = f.DeleteSheet("Sheet1")
-
 	err = f.SaveAs(outputFile)
 	return
+
 }
 
-func buildTableArray(singletonApps map[string]map[string]map[string][]*resource.Process) (tableArray [][]string) {
+func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.Process) (tableArray [][]string) {
 	// Get keys to enable sorting so that each sheet has a predictable order
-	orgs := maps.Keys(singletonApps)
+	orgs := maps.Keys(sourceData)
 	sort.Strings(orgs)
+	idx := 0
 	for _, orgName := range orgs {
-		spaces := maps.Keys(singletonApps[orgName])
+		spaces := maps.Keys(sourceData[orgName])
 		sort.Strings(spaces)
 		for _, spaceName := range spaces {
-			apps := maps.Keys(singletonApps[orgName][spaceName])
+			apps := maps.Keys(sourceData[orgName][spaceName])
 			sort.Strings(apps)
 			for _, appName := range apps {
-				for _, process := range singletonApps[orgName][spaceName][appName] {
+				for _, process := range sourceData[orgName][spaceName][appName] {
 					tableArray = append(tableArray, []string{
 						orgName,
 						spaceName,
 						appName,
-						process.Relationships.App.Data.GUID,
+						process.AppGuid,
 						process.Type,
+						strconv.Itoa(process.Instances),
+
 					})
+					if process.HealthCheck != nil {
+						tableArray[idx] = append(tableArray[idx], []string{
+							process.HealthCheck.Type,
+							strconv.Itoa(*process.HealthCheck.Data.InvocationTimeout),
+							strconv.Itoa(*process.HealthCheck.Data.Timeout),
+						}...)
+					}
+					idx++
 				}
 			}
 		}

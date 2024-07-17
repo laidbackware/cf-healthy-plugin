@@ -3,34 +3,34 @@ package render_output
 import (
 	"testing"
 
-	"github.com/cloudfoundry/go-cfclient/v3/resource"
+	// "github.com/cloudfoundry/go-cfclient/v3/resource"
+	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBuildTableArray(t *testing.T) {
-	singletonApps := map[string]map[string]map[string][]*resource.Process{
+	sheetContents := map[string]map[string]map[string][]collect_data.Process{
 		"o1": {
 			"s1": {
 				"a1": {
-					&resource.Process{
+					collect_data.Process{
 						Type: "web",
-						Relationships: resource.ProcessRelationships{
-							App: resource.ToOneRelationship{
-								Data: &resource.Relationship{
-									GUID: "a1uid",
-								},
-							},
-						},
+						Instances: 1,
+						AppGuid: "1-2",
+						// HealthCheck: &resource.ProcessHealthCheck{
+						// 	Type: "web",
+						// 	Data: &resource
+						// 	resource.ToOneRelationship{
+						// 		Data: &resource.Relationship{
+						// 			GUID: "a1uid",
+						// 		},
+						// 	},
+						// },
 					},
-					&resource.Process{
+					collect_data.Process{
 						Type: "worker",
-						Relationships: resource.ProcessRelationships{
-							App: resource.ToOneRelationship{
-								Data: &resource.Relationship{
-									GUID: "a1uid",
-								},
-							},
-						},
+						Instances: 1,
+						AppGuid: "1-2",
 					},
 				},
 			},
@@ -38,46 +38,31 @@ func TestBuildTableArray(t *testing.T) {
 		"o2": {
 			"s2": {
 				"a2": {
-					&resource.Process{
+					collect_data.Process{
 						Type: "web",
-						Relationships: resource.ProcessRelationships{
-							App: resource.ToOneRelationship{
-								Data: &resource.Relationship{
-									GUID: "a2uid",
-								},
-							},
-						},
+						Instances: 1,
+						AppGuid: "1-2",
 					},
 				},
 			},
 			"s3": {
 				"a3": {
-					&resource.Process{
+					collect_data.Process{
 						Type: "web",
-						Relationships: resource.ProcessRelationships{
-							App: resource.ToOneRelationship{
-								Data: &resource.Relationship{
-									GUID: "a3uid",
-								},
-							},
-						},
+						Instances: 1,
+						AppGuid: "1-2",
 					},
 				},
 				"a4": {
-					&resource.Process{
+					collect_data.Process{
 						Type: "web",
-						Relationships: resource.ProcessRelationships{
-							App: resource.ToOneRelationship{
-								Data: &resource.Relationship{
-									GUID: "a4uid",
-								},
-							},
-						},
+						Instances: 1,
+						AppGuid: "1-2",
 					},
 				},
 			},
 		},
 	}
-	tableArray := buildTableArray(singletonApps)
+	tableArray := buildTableArray(sheetContents)
 	assert.Equal(t, len(tableArray), 5)
 }

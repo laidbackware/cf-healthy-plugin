@@ -16,58 +16,85 @@ type LookupTables struct {
 	orgNameLookup			map[string]string
 }
 
-func FindSingletonApps(cf *client.Client) (map[string]map[string]map[string][]*resource.Process, error) {
+type HealthState struct {
+	SingletonApps 		map[string]map[string]map[string][]Process `json:"singleton_apps"`
+	PortHealthCheck 	map[string]map[string]map[string][]Process `json:"port_health_checks"`
+	DefaultHttpTime		map[string]map[string]map[string][]Process `json:"default_http_interval"`
+	AllProcesses			map[string]map[string]map[string][]Process `json:"all_process_data"`
+}
+
+type Process struct {
+	Instances 				int														`json:"instance_count"`
+	Type 							string												`json:"process_type"`
+	AppGuid						string												`json:"app_guid"`
+	HealthCheck				*resource.ProcessHealthCheck	`json:"health_check"`
+}
+
+func CollectHealthState(cf *client.Client) (HealthState, error) {
 	var lookups LookupTables
 	
 	var err error
 	lookups.appNameLookup, lookups.appSpaceLookup, err = AppLookup(cf)
 	if err != nil {
-		return nil, err
+		return HealthState{}, err
 	}
 	lookups.spaceNameLookup, lookups.spaceOrgLookup, err = SpaceLookup(cf)
 	if err != nil {
-		return nil, err
+		return HealthState{}, err
 	}
 	lookups.orgNameLookup, err = OrgNameLookup(cf)
 	if err != nil {
-		return nil, err
+		return HealthState{}, err
 	}
 	processes, err := cf.Processes.ListAll(context.Background(), nil)
 	if err != nil {
-		return nil, err
+		return HealthState{}, err
 	}
 
-	singletonApps, err := iterateProcesses(lookups, processes)
+	healthState, err := iterateProcesses(lookups, processes)
 
-	return singletonApps, err
+	return healthState, err
 }
 
 
-func iterateProcesses(lookups LookupTables, processes []*resource.Process) (map[string]map[string]map[string][]*resource.Process, error) {
+func iterateProcesses(lookups LookupTables, processes []*resource.Process) (HealthState, error) {
 	var err error
-	singletonApps := make(map[string]map[string]map[string][]*resource.Process)
+	healthState := HealthState {
+		SingletonApps: 		make(map[string]map[string]map[string][]Process),
+		PortHealthCheck: 	make(map[string]map[string]map[string][]Process),
+		DefaultHttpTime: 	make(map[string]map[string]map[string][]Process),
+		AllProcesses: 		make(map[string]map[string]map[string][]Process),
+	}
 
 	for _, process := range processes{
 		if process.Instances < 2 && process.Type != "task" {
-			appName := lookups.appNameLookup[process.Relationships.App.Data.GUID]
-			appSpace := lookups.spaceNameLookup[
-				lookups.appSpaceLookup[process.Relationships.App.Data.GUID]]
-			appOrg := lookups.orgNameLookup[
-				lookups.spaceOrgLookup[lookups.appSpaceLookup[process.Relationships.App.Data.GUID]]]
-
-			if _, ok := singletonApps[appOrg]; !ok {
-				singletonApps[appOrg] = make(map[string]map[string][]*resource.Process)
-			}
-			if _, ok := singletonApps[appOrg][appSpace]; !ok {
-				singletonApps[appOrg][appSpace] = make(map[string][]*resource.Process)
-			}
-			if _, ok := singletonApps[appOrg][appSpace][appName]; !ok {
-				singletonApps[appOrg][appSpace][appName] = []*resource.Process{process}
-			} else  {
-				singletonApps[appOrg][appSpace][appName] = append(singletonApps[appOrg][appSpace][appName], process)
-			}
+				process := Process {
+					AppGuid: 		process.Relationships.App.Data.GUID,
+					Instances: 	process.Instances,
+					Type: 			process.Type,
+				}
+				addProcess(lookups, healthState.SingletonApps, process)
 		}
 	}
-	return singletonApps, err
+	return healthState, err
 }
 
+func addProcess(lookups LookupTables, targetMap map[string]map[string]map[string][]Process, process Process) {
+	appName := lookups.appNameLookup[process.AppGuid]
+	appSpace := lookups.spaceNameLookup[
+		lookups.appSpaceLookup[process.AppGuid]]
+	appOrg := lookups.orgNameLookup[
+		lookups.spaceOrgLookup[lookups.appSpaceLookup[process.AppGuid]]]
+
+	if _, ok := targetMap[appOrg]; !ok {
+		targetMap[appOrg] = make(map[string]map[string][]Process)
+	}
+	if _, ok := targetMap[appOrg][appSpace]; !ok {
+		targetMap[appOrg][appSpace] = make(map[string][]Process)
+	}
+	if _, ok := targetMap[appOrg][appSpace][appName]; !ok {
+		targetMap[appOrg][appSpace][appName] = []Process{process}
+	} else  {
+		targetMap[appOrg][appSpace][appName] = append(targetMap[appOrg][appSpace][appName], process)
+	}
+}

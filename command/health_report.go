@@ -11,7 +11,7 @@ import (
 	"github.com/laidbackware/cf-healthy-plugin/internal/render_output"
 )
 
-func healthReport(cliConnection plugin.CliConnection, args []string) {
+func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
 	fc, err := parseArguements(args)
 	handleError(err)
 
@@ -28,14 +28,15 @@ func healthReport(cliConnection plugin.CliConnection, args []string) {
 	cf, err := createCFClient(cliConnection)
 	handleError(err)
 
-	singletonApps, err := collect_data.FindSingletonApps(cf)
+	// var healthState collect_data.HealthState
+	healthState, err := collect_data.CollectHealthState(cf)
 	handleError(err)
 
 	switch fileFormat {
 	case "xlsx":
-		handleError(render_output.WriteSheet(singletonApps, outputFile))
+		handleError(render_output.WriteSheet(healthState, outputFile))
 	case "json":
-		handleError(render_output.WriteJSON(singletonApps, outputFile))
+		handleError(render_output.WriteJSON(healthState, outputFile))
 	default:
 		fmt.Fprintf(os.Stderr, "File format %s is not support. Please use [json, xlsx]\n", fileFormat)
 		os.Exit(1)

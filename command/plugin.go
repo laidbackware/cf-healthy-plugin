@@ -26,7 +26,7 @@ type HealthyPlugin struct{}
 func (c *HealthyPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	switch args[0] {
 	case "health-report":
-		healthReport(cliConnection, args)
+		generateHealthReport(cliConnection, args)
 	case "CLI-MESSAGE-UNINSTALL":
 		os.Exit(0)
 	default:

@@ -10,12 +10,10 @@ import (
 )
 
 func TestFindSingletonApps(t *testing.T) {
-
-
 	cf := initClient(t)
-	singletonApps, err := FindSingletonApps(cf)
+	healthState, err := CollectHealthState(cf)
 	assert.Nil(t, err)
-	assert.Greater(t, len(singletonApps), 1)
+	assert.Greater(t, len(healthState.SingletonApps), 1)
 }
 
 func TestIterateProcesses(t *testing.T) {
@@ -60,10 +58,10 @@ func TestIterateProcesses(t *testing.T) {
 		},
 	}
 
-	singletonApps, err := iterateProcesses(lookups, processes)
+	healthState, err := iterateProcesses(lookups, processes)
 	assert.Nil(t, err)
-	assert.Equal(t, len(singletonApps), 2)
-	assert.Equal(t, len(singletonApps["o1name"]), 1)
-	assert.Equal(t, len(singletonApps["o1name"]["s1name"]), 1)
-	assert.Equal(t, len(singletonApps["o1name"]["s1name"]["a1name"]), 1)
+	assert.Equal(t, len(healthState.SingletonApps), 2)
+	assert.Equal(t, len(healthState.SingletonApps["o1name"]), 1)
+	assert.Equal(t, len(healthState.SingletonApps["o1name"]["s1name"]), 1)
+	assert.Equal(t, len(healthState.SingletonApps["o1name"]["s1name"]["a1name"]), 1)
 }
