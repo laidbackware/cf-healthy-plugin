@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"code.cloudfoundry.org/cli/plugin"
 	"code.cloudfoundry.org/cli/cf/flags"
@@ -15,14 +16,22 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
 	fc, err := parseArguements(args)
 	handleError(err)
 
-	outputFile := fc.String("output")
-  fileFormat := fc.String("format")
-	fmt.Println(fileFormat)
+	outputFile := strings.ToLower(fc.String("output"))
+  fileFormat := strings.ToLower(fc.String("format"))
+
+	if fileFormat != "json" && fileFormat != "xlsx" {
+		fmt.Fprintln(os.Stderr, "Requested output format is invlaid. Please use: [json, xlsx]")
+		os.Exit(1)
+	}
 
 	if outputFile == "" {
 		currentDir, err := os.Getwd()
 		handleError(err)
-		outputFile = filepath.Join(currentDir, "report.xlsx")
+		if fileFormat == "json"{
+			outputFile = filepath.Join(currentDir, "report.json")
+		} else {
+			outputFile = filepath.Join(currentDir, "report.xlsx")
+		}
 	}
 	
 	cf, err := createCFClient(cliConnection)
