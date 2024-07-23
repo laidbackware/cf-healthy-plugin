@@ -16,6 +16,7 @@ type LookupTables struct {
 	orgNameLookup			map[string]string
 }
 
+// All return data stored as a nested map to allow for it to be easily sorted before rendering
 type HealthState struct {
 	SingletonApps 		map[string]map[string]map[string][]Process `json:"singleton_apps"`
 	PortHealthCheck 	map[string]map[string]map[string][]Process `json:"port_health_checks"`
@@ -66,15 +67,23 @@ func iterateProcesses(lookups LookupTables, processes []*resource.Process) (Heal
 		AllProcesses: 		make(map[string]map[string]map[string][]Process),
 	}
 
-	for _, process := range processes{
+	for _, fullProcess := range processes{
+		process := Process {
+			AppGuid: 			fullProcess.Relationships.App.Data.GUID,
+			Instances: 		fullProcess.Instances,
+			Type: 				fullProcess.Type,
+			HealthCheck:  &fullProcess.HealthCheck,
+		}
+		addProcess(lookups, healthState.AllProcesses, process)
 		if process.Instances < 2 && process.Type != "task" {
-				process := Process {
-					AppGuid: 		process.Relationships.App.Data.GUID,
-					Instances: 	process.Instances,
-					Type: 			process.Type,
-				}
 				addProcess(lookups, healthState.SingletonApps, process)
 		}
+		if process.HealthCheck.Type == "port" {
+			addProcess(lookups, healthState.PortHealthCheck, process)
+		}
+		if process.HealthCheck.Data.InvocationTimeout != nil && *process.HealthCheck.Data.InvocationTimeout == 30 {
+			addProcess(lookups, healthState.DefaultHttpTime, process)
+		}	
 	}
 	return healthState, err
 }
