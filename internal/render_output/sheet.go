@@ -20,6 +20,22 @@ type sheetContent struct {
 func WriteSheet(healthState collect_data.HealthState, outputFile string) (err error) {
 	allSheetsContents := []sheetContent{
 		{
+			sheetName: "all_apps",
+			sheetHeaders: []string{
+				"Org Name",
+				"Space Name",
+				"App Name",
+				"App ID",
+				"Process Type",
+				"Instances",
+				"Health Check Type",
+				"HTTP Interval",
+				"HTTP Endpoint",
+			},
+			columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
+			tableData: buildTableArray(healthState.AllProcesses, true),
+		},
+		{
 			sheetName: "singleton_apps",
 			sheetHeaders: []string{
 				"Org Name",
@@ -27,13 +43,43 @@ func WriteSheet(healthState collect_data.HealthState, outputFile string) (err er
 				"App Name",
 				"App ID",
 				"Process Type",
+				"Instances",
 			},
-			columnWidths: []float64{20, 20, 20, 32, 15},
-			tableData: buildTableArray(healthState.SingletonApps),
+			columnWidths: []float64{20, 20, 20, 32, 15, 15},
+			tableData: buildTableArray(healthState.SingletonApps, false),
 		},
+		{
+			sheetName: "port_health_check",
+			sheetHeaders: []string{
+				"Org Name",
+				"Space Name",
+				"App Name",
+				"App ID",
+				"Process Type",
+				"Instances",
+				"Health Check Type",
+			},
+			columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
+			tableData: buildTableArray(healthState.PortHealthCheck, true),
+		},
+		// {
+		// 	sheetName: "default_http_check",
+		// 	sheetHeaders: []string{
+		// 		"Org Name",
+		// 		"Space Name",
+		// 		"App Name",
+		// 		"App ID",
+		// 		"Process Type",
+		// 		"Instances",
+		// 		"Health Check Type",
+		// 		"HTTP Interval",
+		// 		"HTTP Endpoint",
+		// 	},
+		// 	columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
+		// 	tableData: buildTableArray(healthState.DefaultHttpTime, true),
+		// },
 	}
 	
-	// tableArray := buildTableArray(healthState.SingletonApps)
 	err = renderSheet(allSheetsContents, outputFile)
 	return
 }
@@ -49,18 +95,18 @@ func renderSheet(allSheetsContents []sheetContent, outputFile string) (err error
 
 	// Walk sheets and render
 	for _, sheetContents := range allSheetsContents {
-		_, err = f.NewSheet("singleton-apps")
+		_, err = f.NewSheet(sheetContents.sheetName)
 		if err != nil {
 			return
 		}
-		setColumnWidths(f, "singleton-apps", sheetContents.columnWidths)
+		setColumnWidths(f, sheetContents.sheetName, sheetContents.columnWidths)
 		
 		// Write headers
-		writeLine(f, "singleton-apps", sheetContents.sheetHeaders, 0)
+		writeLine(f, sheetContents.sheetName, sheetContents.sheetHeaders, 0)
 		
 		// Write lines from array
 		for row, line := range sheetContents.tableData{
-			writeLine(f, "singleton-apps", line, row + 1)
+			writeLine(f, sheetContents.sheetName, line, row + 1)
 		}
 		
 		
@@ -71,7 +117,7 @@ func renderSheet(allSheetsContents []sheetContent, outputFile string) (err error
 
 }
 
-func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.Process) (tableArray [][]string) {
+func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.Process, incHealth bool) (tableArray [][]string) {
 	// Get keys to enable sorting so that each sheet has a predictable order
 	orgs := maps.Keys(sourceData)
 	sort.Strings(orgs)
@@ -93,12 +139,11 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 						strconv.Itoa(process.Instances),
 
 					})
-					if process.HealthCheck != nil {
-						tableArray[idx] = append(tableArray[idx], []string{
-							process.HealthCheck.Type,
-							strconv.Itoa(*process.HealthCheck.Data.InvocationTimeout),
-							strconv.Itoa(*process.HealthCheck.Data.Timeout),
-						}...)
+					if incHealth {
+						includeIfValid(tableArray, idx, process.HealthCheck.Type)
+						if process.HealthCheck.Type == "http" {
+							includeIfValid(tableArray, idx, *process.HealthCheck.Data.Endpoint)
+						}
 					}
 					idx++
 				}
@@ -106,6 +151,12 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 		}
 	}
 	return
+}
+
+func includeIfValid(tableArray [][]string, idx int, content string){
+	tableArray[idx] = append(tableArray[idx], []string{
+		content,
+	}...)
 }
 
 // Set widths of colums
