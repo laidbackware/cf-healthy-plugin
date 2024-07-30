@@ -4,10 +4,10 @@ go 1.22
 
 require (
 	code.cloudfoundry.org/cli v7.1.0+incompatible
-	github.com/cloudfoundry/go-cfclient/v3 v3.0.0-alpha.7
+	github.com/cloudfoundry/go-cfclient/v3 v3.0.0-alpha.8
 	github.com/stretchr/testify v1.9.0
 	github.com/xuri/excelize/v2 v2.8.1
-	golang.org/x/exp v0.0.0-20240707233637-46b078467d37
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
 
 require (

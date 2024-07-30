@@ -81,7 +81,7 @@ func iterateProcesses(lookups LookupTables, processes []*resource.Process) (Heal
 		if process.HealthCheck.Type == "port" {
 			addProcess(lookups, healthState.PortHealthCheck, process)
 		}
-		if process.HealthCheck.Data.InvocationTimeout != nil && *process.HealthCheck.Data.InvocationTimeout == 30 {
+		if process.HealthCheck.Data.Interval != nil && *process.HealthCheck.Data.Interval == 30 {
 			addProcess(lookups, healthState.DefaultHttpTime, process)
 		}	
 	}

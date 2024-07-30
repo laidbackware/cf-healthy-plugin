@@ -18,21 +18,25 @@ type sheetContent struct {
 }
 
 func WriteSheet(healthState collect_data.HealthState, outputFile string) (err error) {
+	headersWithHealth := []string{
+		"Org Name",
+		"Space Name",
+		"App Name",
+		"App ID",
+		"Process Type",
+		"Instances",
+		"Health Check Type",
+		"Interval",
+		"Timeout",
+		"Invocation Timeout",
+		"HTTP Endpoint",
+	}
+	widthsWithHealth := []float64{20, 20, 20, 32, 15, 15, 25, 20, 15, 25, 20}
 	allSheetsContents := []sheetContent{
 		{
 			sheetName: "all_apps",
-			sheetHeaders: []string{
-				"Org Name",
-				"Space Name",
-				"App Name",
-				"App ID",
-				"Process Type",
-				"Instances",
-				"Health Check Type",
-				"HTTP Interval",
-				"HTTP Endpoint",
-			},
-			columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
+			sheetHeaders: headersWithHealth,
+			columnWidths: widthsWithHealth,
 			tableData: buildTableArray(healthState.AllProcesses, true),
 		},
 		{
@@ -50,34 +54,16 @@ func WriteSheet(healthState collect_data.HealthState, outputFile string) (err er
 		},
 		{
 			sheetName: "port_health_check",
-			sheetHeaders: []string{
-				"Org Name",
-				"Space Name",
-				"App Name",
-				"App ID",
-				"Process Type",
-				"Instances",
-				"Health Check Type",
-			},
-			columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
+			sheetHeaders: headersWithHealth,
+			columnWidths: widthsWithHealth,
 			tableData: buildTableArray(healthState.PortHealthCheck, true),
 		},
-		// {
-		// 	sheetName: "default_http_check",
-		// 	sheetHeaders: []string{
-		// 		"Org Name",
-		// 		"Space Name",
-		// 		"App Name",
-		// 		"App ID",
-		// 		"Process Type",
-		// 		"Instances",
-		// 		"Health Check Type",
-		// 		"HTTP Interval",
-		// 		"HTTP Endpoint",
-		// 	},
-		// 	columnWidths: []float64{20, 20, 20, 32, 15, 15, 25},
-		// 	tableData: buildTableArray(healthState.DefaultHttpTime, true),
-		// },
+		{
+			sheetName: "default_http_check",
+			sheetHeaders: headersWithHealth,
+			columnWidths: widthsWithHealth,
+			tableData: buildTableArray(healthState.DefaultHttpTime, true),
+		},
 	}
 	
 	err = renderSheet(allSheetsContents, outputFile)
@@ -140,10 +126,7 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 
 					})
 					if incHealth {
-						includeIfValid(tableArray, idx, process.HealthCheck.Type)
-						if process.HealthCheck.Type == "http" {
-							includeIfValid(tableArray, idx, *process.HealthCheck.Data.Endpoint)
-						}
+						addHealth(tableArray, idx, process)
 					}
 					idx++
 				}
@@ -153,7 +136,27 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 	return
 }
 
-func includeIfValid(tableArray [][]string, idx int, content string){
+func addHealth(tableArray [][]string, idx int, process collect_data.Process){
+	appendArray(tableArray, idx, process.HealthCheck.Type)
+	appendIntIfNotNil(tableArray, idx, process.HealthCheck.Data.Interval)
+	appendIntIfNotNil(tableArray, idx, process.HealthCheck.Data.Timeout)
+	appendIntIfNotNil(tableArray, idx, process.HealthCheck.Data.InvocationTimeout)
+	if process.HealthCheck.Type == "http" {
+		appendArray(tableArray, idx, *process.HealthCheck.Data.Endpoint)
+	}
+}
+
+// Call appendArray if pointer is not nil
+func appendIntIfNotNil(tableArray [][]string, idx int, content *int){
+	if content != nil {
+		appendArray(tableArray, idx, strconv.Itoa(*content))
+		return
+	}
+	appendArray(tableArray, idx, "")
+}
+
+// Append string to 3d string array
+func appendArray(tableArray [][]string, idx int, content string){
 	tableArray[idx] = append(tableArray[idx], []string{
 		content,
 	}...)

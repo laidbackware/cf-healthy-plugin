@@ -50,8 +50,8 @@ func TestIterateProcesses(t *testing.T) {
 			Instances: 1,
 			HealthCheck: resource.ProcessHealthCheck{
 				Type: "http",
-				Data: resource.ProcessData{
-					InvocationTimeout: createIntPointer(30),
+				Data: resource.ProcessHealthCheckData{
+					Interval: createIntPointer(30),
 				},
 			},
 		},
@@ -66,8 +66,8 @@ func TestIterateProcesses(t *testing.T) {
 			Instances: 2,
 			HealthCheck: resource.ProcessHealthCheck{
 				Type: "http",
-				Data: resource.ProcessData{
-					InvocationTimeout: createIntPointer(10),
+				Data: resource.ProcessHealthCheckData{
+					Interval: createIntPointer(10),
 				},
 			},
 		},

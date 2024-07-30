@@ -27,8 +27,10 @@ func TestBuildTableArray(t *testing.T) {
 						AppGuid: "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "http",
-							Data: resource.ProcessData{
+							Data: resource.ProcessHealthCheckData{
 								InvocationTimeout: createIntPointer(30),
+								Interval: createIntPointer(30),
+								Timeout: createIntPointer(30),
 								Endpoint: createStringPointer("blah"),
 							},
 						},
@@ -45,8 +47,10 @@ func TestBuildTableArray(t *testing.T) {
 						AppGuid: "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "http",
-							Data: resource.ProcessData{
+							Data: resource.ProcessHealthCheckData{
 								InvocationTimeout: createIntPointer(10),
+								Interval: createIntPointer(30),
+								Timeout: createIntPointer(30),
 								Endpoint: createStringPointer("blah"),
 							},
 						},
