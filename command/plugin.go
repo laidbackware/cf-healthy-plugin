@@ -73,7 +73,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "cf health-report",
+					Usage: "cf health-report [OPTIONS]",
 					Options: options,
 				},
 			},
