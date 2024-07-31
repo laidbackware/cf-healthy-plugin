@@ -2,7 +2,13 @@
 
 ## Install
 
-Check the releases page for the [download page](https://github.com/laidbackware/cf-healthy-plugin/releases/). Linux only for now.
+Check the releases page for the [releases page](https://github.com/laidbackware/cf-healthy-plugin/releases/). Linux only for now.
+
+Install the plugin:
+
+```sh
+cf install-plugin healthy-plugin-linux-amd64-vx.x.x
+```
 
 
 ## Usage
