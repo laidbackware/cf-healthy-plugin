@@ -62,7 +62,7 @@ func WriteSheet(healthState collect_data.HealthState, outputFile string) (err er
 			sheetName: "default_http_check",
 			sheetHeaders: headersWithHealth,
 			columnWidths: widthsWithHealth,
-			tableData: buildTableArray(healthState.DefaultHttpTime, true),
+			tableData: buildTableArray(healthState.LongInterval, true),
 		},
 	}
 	

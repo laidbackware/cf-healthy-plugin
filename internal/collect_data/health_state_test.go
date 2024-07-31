@@ -19,10 +19,8 @@ func TestFindSingletonApps(t *testing.T) {
 func TestIterateProcesses(t *testing.T) {
 	lookups := LookupTables{
 		appNameLookup: map[string]string{"a1uid":"a1name", "a2uid":"a2name", "a3uid":"a3name", "a4uid":"a4name"},
-		appSpaceLookup: map[string]string{"a1uid":"s1uid", "a2uid":"s2uid", "a3uid":"s1uid", "a4uid":"s2uid"},
-		spaceNameLookup: map[string]string{"s1uid":"s1name", "s2uid":"s2name"},
-		spaceOrgLookup: map[string]string{"s1uid":"o1uid", "s2uid":"o2uid"},
-		orgNameLookup: map[string]string{"o1uid":"o1name", "o2uid":"o2name"},
+		appSpaceNameLookup: map[string]string{"a1uid":"s1name", "a2uid":"s2name", "a3uid":"s1name", "a4uid":"s2name"},
+		appOrgNameLookup: map[string]string{"a1uid":"o1name", "a2uid":"o2name", "a3uid":"o1name", "a4uid":"o2name", "system-app": "system"},
 	}
 
 	processes := []*resource.Process{
@@ -79,8 +77,8 @@ func TestIterateProcesses(t *testing.T) {
 	assert.Equal(t, len(healthState.SingletonApps["o1name"]["s1name"]["a1name"]), 1)
 	assert.Equal(t, len(healthState.PortHealthCheck), 1)
 	assert.Equal(t, len(healthState.PortHealthCheck["o1name"]["s1name"]["a1name"]), 1)
-	assert.Equal(t, len(healthState.DefaultHttpTime), 1)
-	assert.Equal(t, len(healthState.DefaultHttpTime["o2name"]["s2name"]["a2name"]), 1)
+	assert.Equal(t, len(healthState.LongInterval), 1)
+	assert.Equal(t, len(healthState.LongInterval["o2name"]["s2name"]["a2name"]), 1)
 }
 
 func createIntPointer(x int) *int {

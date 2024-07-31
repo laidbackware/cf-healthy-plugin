@@ -34,24 +34,13 @@ func mustEnv(t *testing.T, k string) string {
 
 func TestAppNameLookup(t *testing.T) {
 	cf := initClient(t)
-	appLookup, appSpaceLookup, err := AppLookup(cf)
-	assert.Nil(t, err)
-	assert.Greater(t, len(appLookup), 2)
-	assert.Greater(t, len(appSpaceLookup), 2)
-}
-
-func TestSpaceNameLookup(t *testing.T) {
-	cf := initClient(t)
-	spaceLookup, spaceOrgLookup, err := SpaceLookup(cf)
-	assert.Nil(t, err)
-	assert.Greater(t, len(spaceLookup), 2)
-	assert.Greater(t, len(spaceOrgLookup), 2)
-}
-
-func TestOrgNameLookup(t *testing.T) {
-	cf := initClient(t)
 	orgLookup, err := OrgNameLookup(cf)
 	assert.Nil(t, err)
-	assert.Greater(t, len(orgLookup), 1)
+	spaceLookup, spaceOrgNameLookup, err := SpaceLookup(cf, orgLookup)
+	assert.Nil(t, err)
+	appLookup, appSpaceNameLookup, appOrgNameLookup, err := AppLookup(cf, spaceOrgNameLookup, spaceLookup)
+	assert.Nil(t, err)
+	assert.Greater(t, len(appLookup), 2)
+	assert.Greater(t, len(appSpaceNameLookup), 2)
+	assert.Greater(t, len(appOrgNameLookup), 2)
 }
-

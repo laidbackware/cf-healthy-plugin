@@ -23,6 +23,8 @@ OPTIONS:
    --output, -o      The output file, with or without path.
 ```
 
+Note: the long interval report only applies to TAS 5.0 onwards.
+
 ## Install from Source
 
 ```sh

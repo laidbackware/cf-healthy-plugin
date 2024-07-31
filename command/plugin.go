@@ -68,7 +68,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 		Commands: []plugin.Command{
 			{
 				Name:     "health-report",
-				HelpText: "Find singleton apps and export them",
+				HelpText: "Generate report on app to find singletons and port health checks",
 
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
