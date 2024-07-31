@@ -61,7 +61,7 @@ func CollectHealthState(cf *client.Client) (HealthState, error) {
 
 
 func iterateProcesses(lookups LookupTables, processes []*resource.Process) (HealthState, error) {
-	systemOrgs := []string{"system","app-metrics-v2",}
+	systemOrgs := []string{"system","app-metrics-v2", "healthwatch2"}
 	var err error
 	healthState := HealthState {
 		SingletonApps: 		make(map[string]map[string]map[string][]Process),
