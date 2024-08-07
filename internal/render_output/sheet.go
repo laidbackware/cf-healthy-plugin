@@ -7,14 +7,13 @@ import (
 	"golang.org/x/exp/maps"
 	"github.com/xuri/excelize/v2"
 	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
-
 )
 
 type sheetContent struct {
-	sheetName			string
-	sheetHeaders		[]string
-	columnWidths	[]float64
-	tableData			[][]string
+	sheetName    string
+	sheetHeaders []string
+	columnWidths []float64
+	tableData    [][]string
 }
 
 func WriteSheet(healthState collect_data.HealthState, outputFile string) (err error) {
@@ -34,10 +33,10 @@ func WriteSheet(healthState collect_data.HealthState, outputFile string) (err er
 	widthsWithHealth := []float64{20, 20, 20, 32, 15, 15, 25, 20, 15, 25, 20}
 	allSheetsContents := []sheetContent{
 		{
-			sheetName: "all_apps",
+			sheetName:    "all_apps",
 			sheetHeaders: headersWithHealth,
 			columnWidths: widthsWithHealth,
-			tableData: buildTableArray(healthState.AllProcesses, true),
+			tableData:    buildTableArray(healthState.AllProcesses, true),
 		},
 		{
 			sheetName: "singleton_apps",
@@ -50,22 +49,22 @@ func WriteSheet(healthState collect_data.HealthState, outputFile string) (err er
 				"Instances",
 			},
 			columnWidths: []float64{20, 20, 20, 32, 15, 15},
-			tableData: buildTableArray(healthState.SingletonApps, false),
+			tableData:    buildTableArray(healthState.SingletonApps, false),
 		},
 		{
-			sheetName: "port_health_check",
+			sheetName:    "port_health_check",
 			sheetHeaders: headersWithHealth,
 			columnWidths: widthsWithHealth,
-			tableData: buildTableArray(healthState.PortHealthCheck, true),
+			tableData:    buildTableArray(healthState.PortHealthCheck, true),
 		},
 		{
-			sheetName: "default_http_check",
+			sheetName:    "default_http_check",
 			sheetHeaders: headersWithHealth,
 			columnWidths: widthsWithHealth,
-			tableData: buildTableArray(healthState.LongInterval, true),
+			tableData:    buildTableArray(healthState.LongInterval, true),
 		},
 	}
-	
+
 	err = renderSheet(allSheetsContents, outputFile)
 	return
 }
@@ -86,16 +85,15 @@ func renderSheet(allSheetsContents []sheetContent, outputFile string) (err error
 			return
 		}
 		setColumnWidths(f, sheetContents.sheetName, sheetContents.columnWidths)
-		
+
 		// Write headers
 		writeLine(f, sheetContents.sheetName, sheetContents.sheetHeaders, 0)
-		
+
 		// Write lines from array
-		for row, line := range sheetContents.tableData{
-			writeLine(f, sheetContents.sheetName, line, row + 1)
+		for row, line := range sheetContents.tableData {
+			writeLine(f, sheetContents.sheetName, line, row+1)
 		}
-		
-		
+
 	}
 	_ = f.DeleteSheet("Sheet1")
 	err = f.SaveAs(outputFile)
@@ -123,7 +121,6 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 						process.AppGuid,
 						process.Type,
 						strconv.Itoa(process.Instances),
-
 					})
 					if incHealth {
 						addHealth(tableArray, idx, process)
@@ -136,7 +133,7 @@ func buildTableArray(sourceData map[string]map[string]map[string][]collect_data.
 	return
 }
 
-func addHealth(tableArray [][]string, idx int, process collect_data.Process){
+func addHealth(tableArray [][]string, idx int, process collect_data.Process) {
 	appendArray(tableArray, idx, process.HealthCheck.Type)
 	appendIntIfNotNil(tableArray, idx, process.HealthCheck.Data.Interval)
 	appendIntIfNotNil(tableArray, idx, process.HealthCheck.Data.Timeout)
@@ -147,7 +144,7 @@ func addHealth(tableArray [][]string, idx int, process collect_data.Process){
 }
 
 // Call appendArray if pointer is not nil
-func appendIntIfNotNil(tableArray [][]string, idx int, content *int){
+func appendIntIfNotNil(tableArray [][]string, idx int, content *int) {
 	if content != nil {
 		appendArray(tableArray, idx, strconv.Itoa(*content))
 		return
@@ -156,7 +153,7 @@ func appendIntIfNotNil(tableArray [][]string, idx int, content *int){
 }
 
 // Append string to 3d string array
-func appendArray(tableArray [][]string, idx int, content string){
+func appendArray(tableArray [][]string, idx int, content string) {
 	tableArray[idx] = append(tableArray[idx], []string{
 		content,
 	}...)
@@ -164,7 +161,7 @@ func appendArray(tableArray [][]string, idx int, content string){
 
 // Set widths of colums
 func setColumnWidths(f *excelize.File, sheetName string, columnWidths []float64) {
-	for columnIdx, columnWidth := range columnWidths{
+	for columnIdx, columnWidth := range columnWidths {
 		columnName, _ := excelize.ColumnNumberToName(columnIdx + 1)
 		_ = f.SetColWidth(sheetName, columnName, columnName, columnWidth)
 	}
@@ -173,7 +170,7 @@ func setColumnWidths(f *excelize.File, sheetName string, columnWidths []float64)
 // Write line to a worksheet based on an array of strings
 func writeLine(f *excelize.File, sheetName string, content []string, rowIdx int) {
 	for columnIdx, cellContent := range content {
-		cellName, _ := excelize.CoordinatesToCellName(columnIdx + 1, rowIdx + 1)
+		cellName, _ := excelize.CoordinatesToCellName(columnIdx+1, rowIdx+1)
 		_ = f.SetCellValue(sheetName, cellName, cellContent)
 	}
 }

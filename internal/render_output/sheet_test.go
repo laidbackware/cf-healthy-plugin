@@ -14,24 +14,24 @@ func TestBuildTableArray(t *testing.T) {
 			"s1": {
 				"a1": {
 					collect_data.Process{
-						Type: "web",
+						Type:      "web",
 						Instances: 1,
-						AppGuid: "1-2",
+						AppGuid:   "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "port",
 						},
 					},
 					collect_data.Process{
-						Type: "worker",
+						Type:      "worker",
 						Instances: 1,
-						AppGuid: "1-2",
+						AppGuid:   "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "http",
 							Data: resource.ProcessHealthCheckData{
 								InvocationTimeout: createIntPointer(30),
-								Interval: createIntPointer(30),
-								Timeout: createIntPointer(30),
-								Endpoint: createStringPointer("blah"),
+								Interval:          createIntPointer(30),
+								Timeout:           createIntPointer(30),
+								Endpoint:          createStringPointer("blah"),
 							},
 						},
 					},
@@ -42,16 +42,16 @@ func TestBuildTableArray(t *testing.T) {
 			"s2": {
 				"a2": {
 					collect_data.Process{
-						Type: "web",
+						Type:      "web",
 						Instances: 1,
-						AppGuid: "1-2",
+						AppGuid:   "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "http",
 							Data: resource.ProcessHealthCheckData{
 								InvocationTimeout: createIntPointer(10),
-								Interval: createIntPointer(30),
-								Timeout: createIntPointer(30),
-								Endpoint: createStringPointer("blah"),
+								Interval:          createIntPointer(30),
+								Timeout:           createIntPointer(30),
+								Endpoint:          createStringPointer("blah"),
 							},
 						},
 					},
@@ -60,9 +60,9 @@ func TestBuildTableArray(t *testing.T) {
 			"s3": {
 				"a3": {
 					collect_data.Process{
-						Type: "web",
+						Type:      "web",
 						Instances: 1,
-						AppGuid: "1-2",
+						AppGuid:   "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "port",
 						},
@@ -70,9 +70,9 @@ func TestBuildTableArray(t *testing.T) {
 				},
 				"a4": {
 					collect_data.Process{
-						Type: "web",
+						Type:      "web",
 						Instances: 1,
-						AppGuid: "1-2",
+						AppGuid:   "1-2",
 						HealthCheck: &resource.ProcessHealthCheck{
 							Type: "port",
 						},

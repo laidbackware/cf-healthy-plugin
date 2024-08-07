@@ -8,11 +8,11 @@ import (
 )
 
 func WriteJSON(healthState collect_data.HealthState, outputFile string) (err error) {
-	
+
 	outputJson, err := json.MarshalIndent(healthState, "", "    ")
 	if err != nil {
 		return
 	}
-  err = os.WriteFile(outputFile, outputJson, 0644)
+	err = os.WriteFile(outputFile, outputJson, 0644)
 	return
 }
