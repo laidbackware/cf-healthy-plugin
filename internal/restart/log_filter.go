@@ -3,14 +3,18 @@ package restart
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	logHttp "github.com/laidbackware/cf-healthy-plugin/internal/util/http"
 	logcache "code.cloudfoundry.org/go-log-cache/v3"
+	logcache_v1 "code.cloudfoundry.org/go-log-cache/v3/rpc/logcache_v1"
+	"code.cloudfoundry.org/go-loggregator/v10/rpc/loggregator_v2"
+	logHttp "github.com/laidbackware/cf-healthy-plugin/internal/util/http"
+
 	// "github.com/cloudfoundry/go-cfclient/v3/client"
 	// "github.com/cloudfoundry/go-cfclient/v3/config"
 	"code.cloudfoundry.org/cli/plugin"
@@ -38,21 +42,6 @@ func GetLogs(cliConnection plugin.CliConnection, c logHttp.Client, sourceID stri
 		log.Fatalf("%s", err)
 	}
 
-	// user, err := cliConnection.Username()
-	// if err != nil {
-	// 	log.Fatalf("%s", err)
-	// }
-
-	// org, err := cli.GetCurrentOrg()
-	// if err != nil {
-	// 	log.Fatalf("%s", err)
-	// }
-
-	// space, err := cli.GetCurrentSpace()
-	// if err != nil {
-	// 	log.Fatalf("%s", err)
-	// }
-
 	logCacheAddr := strings.Replace(tokenURL, "api", "log-cache", 1)
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
@@ -68,21 +57,49 @@ func GetLogs(cliConnection plugin.CliConnection, c logHttp.Client, sourceID stri
 
 	client := logcache.NewClient(logCacheAddr, logcache.WithHTTPClient(c))
 
-	// walkStartTime := time.Now().Add(-5 * time.Second).UnixNano()
-
-
+	var startTime int64 = 1723125134
+	
 	envelopes, err := client.Read(
 		context.Background(),
 		sourceID,
-		time.Now().Add(-5 * time.Second),
+		time.Unix(startTime, 0),
+		// time.Now().Add(-120 * time.Second),
 		// logcache.WithEndTime(o.endTime),
-		// logcache.WithEnvelopeTypes(),
+		logcache.WithEnvelopeTypes(logcache_v1.EnvelopeType_LOG),
 		// logcache.WithLimit(100),
 		// logcache.WithDescending(),
 		// logcache.WithNameFilter(o.nameFilter),
 	)
-
 	log.Print(len(envelopes))
 
+
+	var shutdown 	int
+	var sigkill 	int
+
+	logcache.Walk(
+		context.Background(),
+		sourceID,
+		logcache.Visitor(func(envelopes []*loggregator_v2.Envelope) bool {
+			for _, e := range envelopes {
+				processMessage(&shutdown, &sigkill, string(e.GetLog().GetPayload()))
+			}
+			return true
+		}),
+		client.Read,
+		// logcache.WithWalkStartTime(time.Unix(0, walkStartTime)),
+		logcache.WithWalkEnvelopeTypes(logcache_v1.EnvelopeType_LOG),
+		logcache.WithWalkBackoff(logcache.NewAlwaysRetryBackoff(250*time.Millisecond)),
+		// logcache.WithWalkNameFilter(o.nameFilter),
+	)
 	return err
+}
+
+func processMessage(shutdown, sigkill *int, logMessage string) {
+	switch {
+	case strings.Contains(logMessage, "successfully destroyed container for instance"):
+		*shutdown ++
+	case strings.Contains(logMessage, "Exit status 137 (exceeded 10s graceful shutdown interval)"):
+		*sigkill++
+	}
+	fmt.Println(logMessage)
 }
