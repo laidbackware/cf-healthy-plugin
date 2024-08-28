@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"code.cloudfoundry.org/cli/plugin"
 	
@@ -24,9 +25,13 @@ type HealthyPlugin struct{}
 // user facing errors). The CLI will exit 0 if the plugin exits 0 and will exit
 // 1 should the plugin exits nonzero.
 func (c *HealthyPlugin) Run(cliConnection plugin.CliConnection, args []string) {
+	l := log.New(os.Stderr, "", 0)
+
 	switch args[0] {
 	case "health-report":
-		generateHealthReport(cliConnection, args)
+		generateHealthReport(cliConnection, args[1:], l)
+	case "sig-check":
+		sigCheck(cliConnection, args[1:], l)
 	case "CLI-MESSAGE-UNINSTALL":
 		os.Exit(0)
 	default:
@@ -48,9 +53,12 @@ func (c *HealthyPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 // second field, HelpText, is used by the core CLI to display help information
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
-	options := map[string]string{
+	reportOptions := map[string]string{
 		"--output, -o": "The output file, with or without path.",
 		"--format, -f": "The format of the output file. (json, xlsx).",
+	}
+	sigOptions := map[string]string{
+		"--timeout, -t": "How long to give before timeout. (Default: 30s per instance)",
 	}
 	
 	return plugin.PluginMetadata{
@@ -74,9 +82,27 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
 					Usage: "cf health-report [OPTIONS]",
-					Options: options,
+					Options: reportOptions,
+				},
+			},
+			{
+				Name:     "sig-check",
+				HelpText: "Rolling restart app and check that no SIGKILLs were sent",
+
+				// UsageDetails is optional
+				// It is used to show help of usage of each command
+				UsageDetails: plugin.Usage{
+					Usage: "cf sig-check [OPTIONS] <app-name>",
+					Options: sigOptions,
 				},
 			},
 		},
+	}
+}
+
+func handleError(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }

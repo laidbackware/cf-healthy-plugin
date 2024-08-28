@@ -12,7 +12,7 @@ import (
 	"github.com/laidbackware/cf-healthy-plugin/internal/render_output"
 )
 
-func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
+func generateHealthReport(cliConnection plugin.CliConnection, args []string, log Logger) {
 	fc, err := parseArguements(args)
 	handleError(err)
 
@@ -59,11 +59,4 @@ func parseArguements(args []string) (flags.FlagContext, error) {
 	fc.NewStringFlagWithDefault("format", "f", "The format of the output file. (json, xlsx).", "xlsx")
 	err := fc.Parse(args...)
 	return fc, err
-}
-
-func handleError(err error) {
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 }
