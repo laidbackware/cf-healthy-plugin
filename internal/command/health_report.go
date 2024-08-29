@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string, log
 	fileFormat := strings.ToLower(fc.String("format"))
 
 	if fileFormat != "json" && fileFormat != "xlsx" {
-		fmt.Fprintln(os.Stderr, "Requested output format is invlaid. Please use: [json, xlsx]")
+		log.Fatalf("Requested output format '%s'  is invalid. Please use: [json, xlsx]", fileFormat)
 		os.Exit(1)
 	}
 
@@ -47,10 +46,11 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string, log
 	case "json":
 		handleError(render_output.WriteJSON(healthState, outputFile))
 	default:
-		fmt.Fprintf(os.Stderr, "File format %s is not support. Please use [json, xlsx]\n", fileFormat)
+		log.Fatalf("File format %s is not support. Please use [json, xlsx]\n", fileFormat)
+
 		os.Exit(1)
 	}
-	fmt.Printf("Written file: %s\n", outputFile)
+	log.Printf("Written file: %s\n", outputFile)
 }
 
 func parseArguements(args []string) (flags.FlagContext, error) {

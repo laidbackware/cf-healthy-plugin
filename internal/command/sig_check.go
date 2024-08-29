@@ -18,7 +18,7 @@ func sigCheck(cli plugin.CliConnection, args []string, log Logger){
 	o, err := newSigOptions(cli, args, log)
 	handleError(err)
 
-	fmt.Println(o.appGUID)
+	log.Printf(o.appGUID)
 
 }
 
