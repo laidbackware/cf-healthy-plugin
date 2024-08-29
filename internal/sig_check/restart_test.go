@@ -1,7 +1,8 @@
-package restart
+package sig_check
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
@@ -34,6 +35,7 @@ func mustEnv(t *testing.T, k string) string {
 
 func TestRestartApp(t *testing.T) {
 	cf := initClient(t)
-	err := RestartApp(cf, "b0535acf-231e-4755-9100-e3f4cac07a13", "ac5f5277-43df-40d3-9cee-ed5b78f16c65")
+	l := log.New(os.Stderr, "", 0)
+	err := RestartApp(cf, "9798e4a9-b118-4bd7-ab5f-ac9c6f839b65", l)
 	assert.Nil(t, err)
 }

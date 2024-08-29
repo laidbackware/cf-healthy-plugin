@@ -11,7 +11,7 @@ import (
 	"github.com/laidbackware/cf-healthy-plugin/internal/render_output"
 )
 
-func generateHealthReport(cliConnection plugin.CliConnection, args []string, log Logger) {
+func generateHealthReport(cli plugin.CliConnection, args []string, log Logger) {
 	fc, err := parseArguements(args)
 	handleError(err)
 
@@ -33,7 +33,7 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string, log
 		}
 	}
 
-	cf, err := createCFClient(cliConnection)
+	cf, err := createCFClient(cli)
 	handleError(err)
 
 	// var healthState collect_data.HealthState

@@ -6,19 +6,20 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"code.cloudfoundry.org/cli/plugin"
+	"github.com/laidbackware/cf-healthy-plugin/internal/sig_check"
 )
 
 func sigCheck(cli plugin.CliConnection, args []string, log Logger){
-	// fc, err := parseArguements(args)
-	// handleError(err)
 
-	// cf, err := createCFClient(cliConnection)
-	// handleError(err)
+	cf, err := createCFClient(cli)
+	handleError(err)
 
 	o, err := newSigOptions(cli, args, log)
 	handleError(err)
 
 	log.Printf(o.appGUID)
+
+	sig_check.RestartApp(cf, o.appGUID, log)
 
 }
 
