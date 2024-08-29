@@ -18,7 +18,8 @@ func RestartApp(cf *client.Client, appGUID string, log Logger) error {
 		return err
 	}
 
-	log.Printf("Restarting app with guid: %s", appGUID)
+	log.Printf("Rolling restarting app with guid: %s", appGUID)
+	log.Printf("Once each new instances passes it's health check an existing instance will be sent SIGTERM")
 
 	c := resource.NewDeploymentCreate(appGUID)
 	c.Droplet = &resource.Relationship{
@@ -29,6 +30,8 @@ func RestartApp(cf *client.Client, appGUID string, log Logger) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO inform user of how many instances there will be
 
 	// Run infinite loop to check deployment state
 	for {
