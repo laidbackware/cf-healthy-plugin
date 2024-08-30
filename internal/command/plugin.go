@@ -1,11 +1,10 @@
 package command
 
 import (
+	"code.cloudfoundry.org/cli/plugin"
 	"fmt"
 	"log"
 	"os"
-	"code.cloudfoundry.org/cli/plugin"
-	
 )
 
 // HealthyPlugin is the struct implementing the interface defined by the core CLI. It can
@@ -60,7 +59,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 	sigOptions := map[string]string{
 		"--timeout, -t": "How long to give before timeout. (Default: 30s per instance)",
 	}
-	
+
 	return plugin.PluginMetadata{
 		Name: "HealthyPlugin",
 		Version: plugin.VersionType{
@@ -81,7 +80,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "cf health-report [OPTIONS]",
+					Usage:   "cf health-report [OPTIONS]",
 					Options: reportOptions,
 				},
 			},
@@ -92,7 +91,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "cf sig-check [OPTIONS] <app-name>",
+					Usage:   "cf sig-check [OPTIONS] <app-name>",
 					Options: sigOptions,
 				},
 			},

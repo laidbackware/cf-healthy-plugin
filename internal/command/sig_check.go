@@ -4,31 +4,31 @@ import (
 	"fmt"
 	"strings"
 
-	flags "github.com/jessevdk/go-flags"
 	"code.cloudfoundry.org/cli/plugin"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/laidbackware/cf-healthy-plugin/internal/sig_check"
 )
 
-func sigCheck(cli plugin.CliConnection, args []string, log Logger){
+func sigCheck(cli plugin.CliConnection, args []string, log Logger) {
 	cf, err := createCFClient(cli)
 	handleError(err)
 
 	o, err := newSigOptions(cli, args)
 	handleError(err)
-	
-	err = sig_check.SigCheck(cli, cf, o.appGUID, log, true)
+
+	err = sig_check.SigCheck(cli, cf, o.appGUID, log, o.debugMode)
 	handleError(err)
 }
 
 type sigOptions struct {
-	timeout     int16
-	appGUID 		string
-	debugMode		bool
+	timeout   int16
+	appGUID   string
+	debugMode bool
 }
 
 type sigOptionFlags struct {
-	Timeout     int16	`long:"timeout" short:"t"`
-	Debug 			bool	`bool:"debug" short:"d"`
+	Timeout int16 `long:"timeout" short:"t"`
+	Debug   bool  `bool:"debug" short:"d"`
 }
 
 func newSigOptions(cli plugin.CliConnection, args []string) (sigOptions, error) {
@@ -49,9 +49,9 @@ func newSigOptions(cli plugin.CliConnection, args []string) (sigOptions, error) 
 	}
 
 	o := sigOptions{
-		timeout:		opts.Timeout,
-		appGUID:		appGUID,
-		debugMode:	opts.Debug,
+		timeout:   opts.Timeout,
+		appGUID:   appGUID,
+		debugMode: opts.Debug,
 	}
 
 	return o, nil

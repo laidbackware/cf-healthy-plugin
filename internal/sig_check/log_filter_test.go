@@ -79,7 +79,6 @@ package sig_check
 // 	sigkill := make(chan int)
 // 	err := make(chan error)
 
-
 // 	GetLogs(cliConnection, http.DefaultClient, sourceID, quit, shutdown, sigkill, err, true)
 
 // 	time.Sleep(3 * time.Second)

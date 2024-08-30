@@ -1,8 +1,8 @@
 package sig_check
 
 import (
-	"crypto/tls"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -40,25 +40,27 @@ func SigCheck(cli plugin.CliConnection, cf *client.Client, appGUID string, log L
 	if errReceive != nil {
 		return errReceive
 	}
-	
+
 	shutdownInstances := getIntNonBlock(shutdown)
 	sigkillInstances := getIntNonBlock(sigkill)
 	log.Printf("Restart complete for app with guid: %s", appGUID)
 	log.Printf("%d instaces restarted", shutdownInstances)
-	if sigkillInstances > 0 {
-		return fmt.Errorf("%d apps terminated using SIGKILL", sigkillInstances)
-	}
 
 	// non-blocking send quit
 	select {
 	case quit <- true:
 	default:
 	}
-	
+
+	if sigkillInstances > 0 {
+		return fmt.Errorf("FAILED. %d apps terminated using SIGKILL", sigkillInstances)
+	}
+
+	log.Printf("Success. All apps responded to SIGTERM.")
 	return err
 }
 
-func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logger) (error) {
+func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logger) error {
 	dropletGUID, err := getCurrentDroplet(cf, ctx, appGUID)
 	if err != nil {
 		return err
@@ -66,18 +68,18 @@ func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logg
 	log.Printf("Rolling restarting app with guid: %s", appGUID)
 	log.Printf("Once each new instances passes it's health check an existing instance will be sent a SIGTERM signal")
 	// TODO inform user of how many instances there will be
-	
+
 	c := resource.NewDeploymentCreate(appGUID)
 	c.Droplet = &resource.Relationship{
 		GUID: dropletGUID,
 	}
-	
+
 	// Create deployment against existing droplet to rolling restart
 	dep, err := cf.Deployments.Create(ctx, c)
 	if err != nil {
 		return err
 	}
-	
+
 	// Run infinite loop to check deployment state
 	for {
 		dep, err = cf.Deployments.Get(ctx, dep.GUID)
@@ -89,10 +91,10 @@ func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logg
 		}
 		time.Sleep(2 * time.Second)
 	}
-	
+
 	log.Printf("New instances running for %s. Waiting 30 seconds for shutdowns to complete", appGUID)
 	time.Sleep(30 * time.Second)
-	
+
 	return nil
 }
 

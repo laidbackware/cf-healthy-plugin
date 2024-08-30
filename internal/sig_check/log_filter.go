@@ -9,19 +9,18 @@ import (
 	"strings"
 	"time"
 
+	"code.cloudfoundry.org/cli/plugin"
 	logcache "code.cloudfoundry.org/go-log-cache/v3"
 	logcache_v1 "code.cloudfoundry.org/go-log-cache/v3/rpc/logcache_v1"
 	"code.cloudfoundry.org/go-loggregator/v10/rpc/loggregator_v2"
 	logHttp "github.com/laidbackware/cf-healthy-plugin/internal/util/http"
-	"code.cloudfoundry.org/cli/plugin"
 )
 
 func GetLogs(
-		cliConnection plugin.CliConnection, c logHttp.Client, sourceID string, 
-		quit chan bool, shutdown, sigkill chan int, errC chan error,
-		debugMode bool,
-		) {
-	
+	cliConnection plugin.CliConnection, c logHttp.Client, sourceID string,
+	quit chan bool, shutdown, sigkill chan int, errC chan error,
+	debugMode bool,
+) {
 
 	skipSSL, err := cliConnection.IsSSLDisabled()
 	log := log.New(os.Stderr, "", 0)
@@ -30,7 +29,7 @@ func GetLogs(
 		errC <- err
 		return
 	}
-	
+
 	hasAPI, err := cliConnection.HasAPIEndpoint()
 	if err != nil {
 		log.Fatalf("%s", err)
@@ -74,11 +73,11 @@ func GetLogs(
 		logcache.Visitor(func(envelopes []*loggregator_v2.Envelope) bool {
 			for _, e := range envelopes {
 				select {
-        case <- quit:
+				case <-quit:
 					return false
-        default:
+				default:
 					processMessage(shutdown, sigkill, string(e.GetLog().GetPayload()), debugMode, log)
-        }
+				}
 			}
 			return true
 		}),
@@ -92,11 +91,11 @@ func GetLogs(
 func processMessage(shutdown, sigkill chan int, logMessage string, debugMode bool, log Logger) {
 	switch {
 	case strings.Contains(logMessage, "successfully destroyed container for instance"):
-		// current := 
+		// current :=
 		// current := <- shutdown
 		// current++
 		debugLog(logMessage, debugMode, log)
-		sendIntNonBlock(shutdown, getIntNonBlock(shutdown) + 1)
+		sendIntNonBlock(shutdown, getIntNonBlock(shutdown)+1)
 		// shutdown <- currente
 	case strings.Contains(logMessage, "Exit status 137 (exceeded 10s graceful shutdown interval)"):
 		// current := <- sigkill
@@ -104,19 +103,18 @@ func processMessage(shutdown, sigkill chan int, logMessage string, debugMode boo
 		// sigkill <- current
 
 		debugLog(logMessage, debugMode, log)
-		sendIntNonBlock(sigkill, getIntNonBlock(sigkill) + 1)
+		sendIntNonBlock(sigkill, getIntNonBlock(sigkill)+1)
 	// enable debug logging for related events
-	case (
-		strings.Contains(logMessage, "stopping") || strings.Contains(logMessage, "destroying") || 
-		strings.Contains(logMessage, "successfully") || strings.Contains(logMessage, "creating")): 
+	case (strings.Contains(logMessage, "stopping") || strings.Contains(logMessage, "destroying") ||
+		strings.Contains(logMessage, "successfully") || strings.Contains(logMessage, "creating")):
 		debugLog(logMessage, debugMode, log)
-	// default: 
-	// 	debugLog(logMessage, debugMode)
+		// default:
+		// 	debugLog(logMessage, debugMode)
 	}
 }
 
 func debugLog(logMessage string, debugMode bool, log Logger) {
-	if debugMode{
+	if debugMode {
 		log.Printf(logMessage)
 	}
 }

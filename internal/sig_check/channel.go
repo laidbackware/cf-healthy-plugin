@@ -9,7 +9,7 @@ func sendIntNonBlock(targetChannel chan int, value int) {
 
 func getIntNonBlock(targetChannel chan int) int {
 	select {
-	case value := <- targetChannel:
+	case value := <-targetChannel:
 		return value
 	default:
 		return 0
@@ -25,7 +25,7 @@ func sendErrNonBlock(targetChannel chan error, value error) {
 
 func getErrNonBlock(targetChannel chan error) error {
 	select {
-	case value := <- targetChannel:
+	case value := <-targetChannel:
 		return value
 	default:
 		return nil
