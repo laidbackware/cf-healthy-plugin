@@ -1,6 +1,6 @@
 # cf-healthy-plugin
 
-This CLI plugin add 2 commands:
+This CF CLI plugin adds 2 commands:
 - `sig-check` - performs a rolling restart of an app and checks whether it responds to the SIGTERM signal, or whether the system has to issue a SIGKILL to terminate the app process.
 - `health-report` - generates a report against all apps the user has visibility of, showing how health checks are configured.
 
