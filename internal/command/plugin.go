@@ -57,7 +57,7 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 		"--format, -f": "The format of the output file. (json, xlsx).",
 	}
 	sigOptions := map[string]string{
-		"--timeout, -t": "How long to give before timeout. (Default: 30s per instance)",
+		"--debug, -d": "Enabled debug logging, which will desplay all app logs.",
 	}
 
 	return plugin.PluginMetadata{

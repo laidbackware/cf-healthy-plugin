@@ -21,13 +21,11 @@ func sigCheck(cli plugin.CliConnection, args []string, log Logger) {
 }
 
 type sigOptions struct {
-	timeout   int16
 	appGUID   string
 	debugMode bool
 }
 
 type sigOptionFlags struct {
-	Timeout int16 `long:"timeout" short:"t"`
 	Debug   bool  `bool:"debug" short:"d"`
 }
 
@@ -49,7 +47,6 @@ func newSigOptions(cli plugin.CliConnection, args []string) (sigOptions, error) 
 	}
 
 	o := sigOptions{
-		timeout:   opts.Timeout,
 		appGUID:   appGUID,
 		debugMode: opts.Debug,
 	}
