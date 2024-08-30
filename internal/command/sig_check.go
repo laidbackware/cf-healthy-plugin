@@ -10,29 +10,28 @@ import (
 )
 
 func sigCheck(cli plugin.CliConnection, args []string, log Logger){
-
 	cf, err := createCFClient(cli)
 	handleError(err)
 
-	o, err := newSigOptions(cli, args, log)
+	o, err := newSigOptions(cli, args)
 	handleError(err)
-
-	log.Printf(o.appGUID)
-
-	sig_check.RestartApp(cf, o.appGUID, log)
-
+	
+	err = sig_check.SigCheck(cli, cf, o.appGUID, log, true)
+	handleError(err)
 }
 
 type sigOptions struct {
-	timeout     	int16
-	appGUID 			string
+	timeout     int16
+	appGUID 		string
+	debugMode		bool
 }
 
 type sigOptionFlags struct {
-	Timeout     int16  `long:"timeout" short:"t"`
+	Timeout     int16	`long:"timeout" short:"t"`
+	Debug 			bool	`bool:"debug" short:"d"`
 }
 
-func newSigOptions(cli plugin.CliConnection, args []string, log Logger) (sigOptions, error) {
+func newSigOptions(cli plugin.CliConnection, args []string) (sigOptions, error) {
 	opts := sigOptionFlags{}
 
 	args, err := flags.ParseArgs(&opts, args)
@@ -50,8 +49,9 @@ func newSigOptions(cli plugin.CliConnection, args []string, log Logger) (sigOpti
 	}
 
 	o := sigOptions{
-		timeout:	opts.Timeout,
-		appGUID:	appGUID,
+		timeout:		opts.Timeout,
+		appGUID:		appGUID,
+		debugMode:	opts.Debug,
 	}
 
 	return o, nil
