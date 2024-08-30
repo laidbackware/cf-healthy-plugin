@@ -6,7 +6,7 @@ This CF CLI plugin adds 2 commands:
 
 ## Install
 
-Check the releases page for the [releases page](https://github.com/laidbackware/cf-healthy-plugin/releases/). Linux only for now.
+Check the releases page for the [releases page](https://github.com/laidbackware/cf-healthy-plugin/releases/). Linux and MacOS only for now, due to Windows anti-virus detecting false positives of unknown Go binaries.
 
 Install the plugin:
 
