@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/laidbackware/cf-healthy-plugin/command"
+	"github.com/laidbackware/cf-healthy-plugin/internal/command"
 
 	"code.cloudfoundry.org/cli/plugin"
 )

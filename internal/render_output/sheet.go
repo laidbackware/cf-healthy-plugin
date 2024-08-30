@@ -4,9 +4,9 @@ import (
 	"sort"
 	"strconv"
 
-	"golang.org/x/exp/maps"
-	"github.com/xuri/excelize/v2"
 	"github.com/laidbackware/cf-healthy-plugin/internal/collect_data"
+	"github.com/xuri/excelize/v2"
+	"golang.org/x/exp/maps"
 )
 
 type sheetContent struct {

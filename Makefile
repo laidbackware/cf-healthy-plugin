@@ -1,7 +1,7 @@
 NAME ?= healthy-plugin
-OUTPUT = ./bin/$(NAME)
+OUTPUT = ./dist/$(NAME)
 GO_SOURCES = $(shell find . -type f -name '*.go')
-VERSION ?= 0.1.0
+VERSION ?= 0.2.0
 GOLANGCI_LINT_VERSION := $(shell golangci-lint --version 2>/dev/null)
 
 .PHONY: all
@@ -14,11 +14,11 @@ clean: ## Clean testcache and delete build output
 	@rm -rf dist/
 
 $(OUTPUT): $(GO_SOURCES)
-	@echo "Building $(VERSION)"
-	go build -o $(OUTPUT) .
 
 .PHONY: build
 build: $(OUTPUT) ## Build the main binary
+	@echo "Building $(VERSION)"
+	go build -o $(OUTPUT) .
 
 .PHONY: test
 test: ## Run the unit tests
@@ -28,9 +28,10 @@ test: ## Run the unit tests
 release: $(GO_SOURCES) ## Cross-compile binary for various operating systems
 	@rm -rf dist
 	@mkdir -p dist
-	GOOS=darwin   GOARCH=amd64 go build -trimpath -ldflags "-w $(LDFLAGS_VERSION)" -o $(OUTPUT)     ./cmd/$(NAME) && tar -czf dist/$(NAME)-darwin-amd64.tgz  -C bin $(NAME) && rm -f $(OUTPUT)
-	GOOS=linux    GOARCH=amd64 go build -trimpath -ldflags "-w $(LDFLAGS_VERSION)" -o $(OUTPUT)     ./cmd/$(NAME) && tar -czf dist/$(NAME)-linux-amd64.tgz   -C bin $(NAME) && rm -f $(OUTPUT)
-	GOOS=windows  GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS_VERSION)"    -o $(OUTPUT).exe ./cmd/$(NAME) && zip -j dist/$(NAME)-windows-amd64.zip $(OUTPUT).exe && rm -f $(OUTPUT).exe
+	GOOS=darwin   GOARCH=amd64 go build -trimpath -ldflags "-w $(LDFLAGS_VERSION)" -o $(OUTPUT)-darwin-amd64-v$(VERSION)
+	GOOS=darwin   GOARCH=arm64 go build -trimpath -ldflags "-w $(LDFLAGS_VERSION)" -o $(OUTPUT)-darwin-arm64-v$(VERSION)
+	GOOS=linux    GOARCH=amd64 go build -trimpath -ldflags "-w $(LDFLAGS_VERSION)" -o $(OUTPUT)-linux-amd64-v$(VERSION)
+	GOOS=windows  GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS_VERSION)"    -o $(OUTPUT)-windows-amd64-v$(VERSION).exe
 
 .PHONY: lint
 lint: ## Validate style and syntax

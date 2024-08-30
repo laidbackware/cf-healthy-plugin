@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +11,7 @@ import (
 	"github.com/laidbackware/cf-healthy-plugin/internal/render_output"
 )
 
-func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
+func generateHealthReport(cli plugin.CliConnection, args []string, log Logger) {
 	fc, err := parseArguements(args)
 	handleError(err)
 
@@ -20,7 +19,7 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
 	fileFormat := strings.ToLower(fc.String("format"))
 
 	if fileFormat != "json" && fileFormat != "xlsx" {
-		fmt.Fprintln(os.Stderr, "Requested output format is invlaid. Please use: [json, xlsx]")
+		log.Fatalf("Requested output format '%s'  is invalid. Please use: [json, xlsx]", fileFormat)
 		os.Exit(1)
 	}
 
@@ -34,7 +33,7 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
 		}
 	}
 
-	cf, err := createCFClient(cliConnection)
+	cf, err := createCFClient(cli)
 	handleError(err)
 
 	// var healthState collect_data.HealthState
@@ -47,10 +46,11 @@ func generateHealthReport(cliConnection plugin.CliConnection, args []string) {
 	case "json":
 		handleError(render_output.WriteJSON(healthState, outputFile))
 	default:
-		fmt.Fprintf(os.Stderr, "File format %s is not support. Please use [json, xlsx]\n", fileFormat)
+		log.Fatalf("File format %s is not support. Please use [json, xlsx]\n", fileFormat)
+
 		os.Exit(1)
 	}
-	fmt.Printf("Written file: %s\n", outputFile)
+	log.Printf("Written file: %s\n", outputFile)
 }
 
 func parseArguements(args []string) (flags.FlagContext, error) {
@@ -59,11 +59,4 @@ func parseArguements(args []string) (flags.FlagContext, error) {
 	fc.NewStringFlagWithDefault("format", "f", "The format of the output file. (json, xlsx).", "xlsx")
 	err := fc.Parse(args...)
 	return fc, err
-}
-
-func handleError(err error) {
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 }
