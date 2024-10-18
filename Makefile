@@ -1,7 +1,7 @@
 NAME ?= healthy-plugin
 OUTPUT = ./dist/$(NAME)
 GO_SOURCES = $(shell find . -type f -name '*.go')
-VERSION ?= 0.2.0
+VERSION ?= 0.3.0
 GOLANGCI_LINT_VERSION := $(shell golangci-lint --version 2>/dev/null)
 
 .PHONY: all
@@ -18,7 +18,7 @@ $(OUTPUT): $(GO_SOURCES)
 .PHONY: build
 build: $(OUTPUT) ## Build the main binary
 	@echo "Building $(VERSION)"
-	go build -o $(OUTPUT) .
+	go build -o ./bin/$(NAME) .
 
 .PHONY: test
 test: ## Run the unit tests

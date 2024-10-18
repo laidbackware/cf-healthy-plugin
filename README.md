@@ -18,7 +18,7 @@ cf install-plugin healthy-plugin-linux-amd64-vx.x.x
 
 You must have an active CF CLI session with an account with the ability to trigger a deployment and read from log cache.
 
-[This demo app](https://github.com/laidbackware/go-sigterm-ignore) can be use to prove how an app shouldn't behave and the expected outputs.
+[This demo app](https://github.com/laidbackware/go-sigterm-interupt) can be use to prove how an app shouldn't behave and the expected outputs.
 
 Run `cf sig-check <app-name>` to perform a rolling restart of the app.
 
@@ -69,4 +69,10 @@ cf uninstall-plugin HealthyPlugin
 
 ```sh
 cf uninstall-plugin HealthyPlugin || True && make build && cf install-plugin -f ./bin/healthy-plugin
+```
+
+## Release
+
+```sh
+make release
 ```

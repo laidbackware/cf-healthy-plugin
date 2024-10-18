@@ -19,7 +19,7 @@ import (
 // Channels must be initialized but empty 
 func GetLogs(
 	cliConnection plugin.CliConnection, c logHttp.Client, sourceID string,
-	quitC chan bool, shutdownC, sigkillC chan int, errC chan error,
+	quitC chan bool, shutdownC, sigkillC, httpErrorC chan int, errC chan error,
 	debugMode bool,
 ) {
 
@@ -76,7 +76,7 @@ func GetLogs(
 				case <-quitC:
 					return false
 				default:
-					processMessage(shutdownC, sigkillC, string(e.GetLog().GetPayload()), debugMode, log)
+					processMessage(shutdownC, sigkillC, httpErrorC, string(e.GetLog().GetPayload()), debugMode, log)
 				}
 			}
 			return true
@@ -88,17 +88,24 @@ func GetLogs(
 	)
 } 
 
-func processMessage(shutdownC, sigkillC chan int, logMessage string, debugMode bool, log Logger) {
+func processMessage(shutdownC, sigkillC, httpErrorC chan int, logMessage string, debugMode bool, log Logger) {
 	switch {
 	case strings.Contains(logMessage, "successfully destroyed container for instance"):
-		shutdownC <- getIntNonBlock(shutdownC)+1
-		log.Printf(logMessage)
+		shutdownC <- getIntNonBlock(shutdownC) + 1
+		if debugMode {
+			log.Printf(logMessage)
+		}
 	case strings.Contains(logMessage, "Exit status 137 (exceeded 10s graceful shutdown interval)"):
-		sigkillC <- getIntNonBlock(sigkillC)+1
+		sigkillC <- getIntNonBlock(sigkillC) + 1
 		log.Printf(logMessage)
-		case (strings.Contains(logMessage, "stopping") || strings.Contains(logMessage, "destroying") ||
+	case strings.Contains(logMessage, "endpoint_failure"):
+		httpErrorC <- getIntNonBlock(httpErrorC) + 1
+		log.Printf("HTTP endpint error due to requests outstanding!")
+	case (strings.Contains(logMessage, "stopping") || strings.Contains(logMessage, "destroying") ||
 		strings.Contains(logMessage, "successfully") || strings.Contains(logMessage, "creating")):
-		log.Printf(logMessage)
+		if debugMode {
+			log.Printf(logMessage)
+		}
 	default:
 		// enable debug logging for related events
 		if debugMode {

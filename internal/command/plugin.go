@@ -57,14 +57,14 @@ func (c *HealthyPlugin) GetMetadata() plugin.PluginMetadata {
 		"--format, -f": "The format of the output file. (json, xlsx).",
 	}
 	sigOptions := map[string]string{
-		"--debug, -d": "Enabled debug logging, which will desplay all app logs.",
+		"--debug, -d": "Enabled debug logging, which will desplay more logs.",
 	}
 
 	return plugin.PluginMetadata{
 		Name: "HealthyPlugin",
 		Version: plugin.VersionType{
 			Major: 0,
-			Minor: 2,
+			Minor: 3,
 			Build: 0,
 		},
 		MinCliVersion: plugin.VersionType{

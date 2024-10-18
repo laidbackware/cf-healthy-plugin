@@ -21,11 +21,12 @@ func SigCheck(cli plugin.CliConnection, cf *client.Client, appGUID string, log L
 		InsecureSkipVerify: true, //nolint:gosec
 	}
 	quit := make(chan bool, 1)
-	shutdown := make(chan int, 1)
-	sigkill := make(chan int, 1)
+	shutdownC := make(chan int, 1)
+	sigkillC := make(chan int, 1)
+	httpErrorC := make(chan int, 1)
 	errChan := make(chan error, 1)
 
-	go GetLogs(cli, http.DefaultClient, appGUID, quit, shutdown, sigkill, errChan, debugMode)
+	go GetLogs(cli, http.DefaultClient, appGUID, quit, shutdownC, sigkillC, httpErrorC, errChan, debugMode)
 	errReceive := getErrNonBlock(errChan)
 	if errReceive != nil {
 		return errReceive
@@ -41,10 +42,11 @@ func SigCheck(cli plugin.CliConnection, cf *client.Client, appGUID string, log L
 		return errReceive
 	}
 
-	shutdownInstances := getIntNonBlock(shutdown)
-	sigkillInstances := getIntNonBlock(sigkill)
-	log.Printf("Restart complete for app with guid: %s", appGUID)
-	log.Printf("%d instaces restarted", shutdownInstances)
+	shutdownCount := getIntNonBlock(shutdownC)
+	sigkillCount := getIntNonBlock(sigkillC)
+	endpointFailrureCount := getIntNonBlock(httpErrorC)
+	log.Printf("Restart complete for app guid: %s", appGUID)
+	log.Printf("%d instaces restarted", shutdownCount)
 
 	// non-blocking send quit
 	select {
@@ -52,8 +54,9 @@ func SigCheck(cli plugin.CliConnection, cf *client.Client, appGUID string, log L
 	default:
 	}
 
-	if sigkillInstances > 0 {
-		return fmt.Errorf("FAILED. %d apps terminated using SIGKILL", sigkillInstances)
+	if sigkillCount > 0 || endpointFailrureCount > 0 {
+		return fmt.Errorf("\n!!!FAILED!!!\n%d instances terminated using SIGKILL.\n%d http endpoint error/s encountered", 
+			sigkillCount, endpointFailrureCount)
 	}
 
 	log.Printf("Success. All apps responded to SIGTERM.")
@@ -65,8 +68,7 @@ func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logg
 	if err != nil {
 		return err
 	}
-	log.Printf("Rolling restarting app with guid: %s", appGUID)
-	log.Printf("Once each new instances passes it's health check an existing instance will be sent a SIGTERM signal")
+	log.Printf("Rolling restarting app guid: %s", appGUID)
 	// TODO inform user of how many instances there will be
 
 	c := resource.NewDeploymentCreate(appGUID)
@@ -92,7 +94,7 @@ func restartApp(cf *client.Client, ctx context.Context, appGUID string, log Logg
 		time.Sleep(2 * time.Second)
 	}
 
-	log.Printf("New instances running for %s. Waiting 30 seconds for shutdowns to complete", appGUID)
+	log.Printf("New instances running for: %s.\nWaiting 30 seconds for shutdowns to complete", appGUID)
 	time.Sleep(30 * time.Second)
 
 	return nil
